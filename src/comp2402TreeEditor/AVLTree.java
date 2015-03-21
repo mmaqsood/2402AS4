@@ -142,8 +142,18 @@ public class AVLTree extends BSTree implements BTreeADT{
 		if (rightChild == null){
 			// Update the leftChild's parent
 			if (nodeToRotate.parent() != null){
-				leftChild.setParent(nodeToRotate.parent());
-				((BTreeNode) leftChild.parent()).setLeftChild(leftChild);
+				AVLTreeNode grandParent = (AVLTreeNode) leftChild.parent().parent();
+				AVLTreeNode parent = nodeToRotate;
+				
+				leftChild.setParent(grandParent);
+				// When linking to the grand parent, we need to check 
+				// what type of child we are and then link appropriately 
+				if (parent.isLeftChild()) {
+					grandParent.setLeftChild(leftChild);
+				}
+				else {
+					grandParent.setRightChild(leftChild);
+				}
 			}
 			else {
 				leftChild.setParent(null);
@@ -196,10 +206,20 @@ public class AVLTree extends BSTree implements BTreeADT{
 		//1. If we have nothing on the left, we can simply attach ourselves 
 		//	 as our child's left child.
 		if (leftChild == null){
-			// Update the leftChild's parent
+			// Update the rightChild's parent
 			if (nodeToRotate.parent() != null){
-				rightChild.setParent(nodeToRotate.parent());
-				((BTreeNode) nodeToRotate.parent()).setRightChild(rightChild);
+				AVLTreeNode grandParent = (AVLTreeNode) rightChild.parent().parent();
+				AVLTreeNode parent = nodeToRotate;
+				
+				rightChild.setParent(grandParent);
+				// When linking to the grand parent, we need to check 
+				// what type of child we are and then link appropriately 
+				if (parent.isLeftChild()) {
+					grandParent.setLeftChild(rightChild);
+				}
+				else {
+					grandParent.setRightChild(rightChild);
+				}
 			}
 			else {
 				rightChild.setParent(null);
