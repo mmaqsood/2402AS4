@@ -20,6 +20,10 @@ public class BSTree extends BTree implements BTreeADT{
 	//       =====
     //This class represents a binary search tree
     
+	private TreeNode lastInsertedNode;
+	
+	public TreeNode getLastInsertedNode() { return lastInsertedNode ;}
+	
 	//CONSTRUCTORS==================================================================
 	public BSTree() {
     }
@@ -47,6 +51,8 @@ public class BSTree extends BTree implements BTreeADT{
     		newChildNode.setLocation(getOwner().getDefaultRootLocation());
     	}
         else getRoot().insertNode(newChildNode);
+    	
+    	lastInsertedNode = newChildNode;
     	
     }
     
