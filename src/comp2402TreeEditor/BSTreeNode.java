@@ -168,7 +168,7 @@ public class BSTreeNode extends BTreeNode implements BTreeNodeADT{
       return null;
     }
 	
-	private TreeNode findSmallestNode(){
+	protected TreeNode findSmallestNode(){
 		//find the smallest node searching from this node along the left subtrees
 		//in a binary search tree the node with the smallest key will be found by
 		//going left as far as possible.
@@ -178,7 +178,7 @@ public class BSTreeNode extends BTreeNode implements BTreeNodeADT{
 		
 	}
 	
-	private void replaceChildNode(TreeNode currentChild, TreeNode newChild){
+	protected void replaceChildNode(TreeNode currentChild, TreeNode newChild){
 		//replace the currentChild of this node with the newChild node
 		if(leftChild == currentChild){
 			removeChildNode(currentChild);

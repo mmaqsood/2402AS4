@@ -6,6 +6,99 @@ import java.io.*;
 public class AVLTree extends BSTree implements BTreeADT{
 
 	AVLTreeNode lastInsertedNode;
+	AVLTreeNode lastDeletedNodeParent;
+	
+	/*
+	 * Find
+	 * 
+	 * Return the node with the given key, null if there is none
+	 */
+	public DataADT find(String aKeyString) {
+		// Standard BST Search.
+		return super.find(aKeyString);
+    }   
+	
+	
+	/*
+	 * 
+	 * Remove 
+	 * 
+	 */
+	public void remove(String aKeyString){
+	    //remove a node whose Data object's key matches aKeyString
+	    //for a binary search tree this requires moving nodes around so that
+	    //the total ordering of nodes is maintained
+	    
+	    //O(height)
+	    
+	      //System.out.println("BSTree::remove(String) ");
+      
+      if(isEmpty()) return;
+      
+      if(size()==1){
+      	Data temp = new Data(aKeyString);
+      	if(root().getData().compare(temp) == 0)
+      	  setRoot(null);
+      	return;
+      }
+      
+     lastDeletedNodeParent = ((AVLTreeNode) getRoot()).removeNodeFromTree(aKeyString);
+     checkAndRebalanceForDelete();
+    }
+	
+	private void checkAndRebalanceForDelete(){
+		// Decide what node we are going to be iterating starting with
+		AVLTreeNode iterateeNode = lastDeletedNodeParent;
+		
+		// Tell us if we should stop balancing the tree
+		boolean completedBalancing = false;
+		
+		// While we have not completed a balance
+		while (!completedBalancing){
+			// We attempt to balance the tree if we need to, and this function will return true if it performed 
+			// a balance.
+			completedBalancing = this.balanceIfNeededForDelete(iterateeNode /*z*/);
+			
+			// We do not need to do the following (moving up) if we have reached the top, the root.
+			if (!iterateeNode.isRoot()) {
+				// Move up the tree.
+				iterateeNode = (AVLTreeNode) iterateeNode.parent();
+			}
+			else {
+				// Right away, for the next iteration, we flip the flag
+				// if we have reached the root, meaning we will no longer
+				// further process
+				completedBalancing = iterateeNode.isRoot();
+			}
+			
+		}
+	}
+	
+	private boolean balanceIfNeededForDelete(AVLTreeNode z){
+		// Get the balance of z, the tree that we fear might be imbalanced.
+		int balance = z.getBalance();
+		
+		// Three values determine an imbalance, 1, -1, 0.
+		boolean isBalanced = balance == 1 || balance == -1 || balance == 0;
+		
+		// Balance the tree based on the case.
+		if (!isBalanced) { 
+			int leftHeight = (z.leftChild() == null) ? 0 : ((AVLTreeNode) z.leftChild()).getHeight();
+			int rightHeight = (z.rightChild() == null) ? 0 : ((AVLTreeNode) z.rightChild()).getHeight();
+			
+			AVLTreeNode y = (AVLTreeNode) ((leftHeight > rightHeight) ? z.leftChild() : z.rightChild());
+			return determineCaseAndRebalance(z, y); 
+		}
+		
+		// Return false, indicating no balance has been performed.
+		return false;
+	}
+	
+	/*
+	 *
+	 * Insert
+	 *  
+	 */
 	public void insert(String dataString){
     	
     	/*A binary search tree inserts nodes based on the key value of their Data item.
@@ -28,11 +121,11 @@ public class AVLTree extends BSTree implements BTreeADT{
         else getRoot().insertNode(newChildNode);
     	
     	lastInsertedNode = (AVLTreeNode) newChildNode;
-    	checkAndRebalance();
+    	checkAndRebalanceForInsert();
     	
     }
 	
-	private void checkAndRebalance(){
+	private void checkAndRebalanceForInsert(){
 		// Decide what node we are going to be iterating starting with
 		AVLTreeNode iterateeNode = lastInsertedNode;
 		
@@ -43,6 +136,9 @@ public class AVLTree extends BSTree implements BTreeADT{
 		if (!iterateeNode.isRoot()){
 			// While we have not completed a balance
 			while (!completedBalancing){
+				
+				//completedBalancing = this.balanceIfNeededForDelete(iterateeNode)
+				
 				// Check the balance only if there is a last child,
 				// indicating we have performed a traversal
 				if (iterateeNode.getLastChild() != null){
@@ -52,7 +148,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 					
 					// We attempt to balance the tree if we need to, and this function will return true if it performed 
 					// a balance.
-					completedBalancing = this.balanceIfNeeded(iterateeNode /*z*/, iterateeNode.getLastChild()/*y*/);
+					completedBalancing = this.balanceIfNeededForInsert(iterateeNode /*z*/, iterateeNode.getLastChild()/*y*/);
 				}
 				
 				// We do not need to do the following (moving up) if we have reached the top, the root.
@@ -73,7 +169,8 @@ public class AVLTree extends BSTree implements BTreeADT{
 			}
 		}
 	}
-	private boolean balanceIfNeeded(AVLTreeNode z, AVLTreeNode y){
+	
+	private boolean balanceIfNeededForInsert(AVLTreeNode z, AVLTreeNode y){
 		// Get the balance of z, the tree that we fear might be imbalanced.
 		int balance = z.getBalance();
 		
@@ -87,13 +184,14 @@ public class AVLTree extends BSTree implements BTreeADT{
 		return false;
 	}
 	
+	/*
+	 * Generic
+	 * 
+	 */
 	private boolean determineCaseAndRebalance(AVLTreeNode z, AVLTreeNode y){
 		
-		// We have two of the nodes we need, z and y, but we need to define w and x.
-		
-		// w is the node we just inserted.
-		AVLTreeNode w = lastInsertedNode;
-		
+		// We have two of the nodes we need, z and y, but we need to define x.
+
 		// x is the child of y, that was on the path from w to z.
 		AVLTreeNode x = y.getLastChild();
 		
@@ -297,7 +395,7 @@ public class AVLTree extends BSTree implements BTreeADT{
         performLeftRotation(v);
     }
     private void doubleRight(AVLTreeNode v) {
-    	//performLeftRotation((AVLTreeNode) v.leftChild());
-    	//performRightRotation(v);
+    	performLeftRotation((AVLTreeNode) v.leftChild());
+    	performRightRotation(v);
     }
 }
