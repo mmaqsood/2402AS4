@@ -71,7 +71,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 	
 	private void checkAndRebalanceForDelete(){
 		// Decide what node we are going to be iterating starting with
-		AVLTreeNode iterateeNode = lastDeletedNodeParent;
+		AVLTreeNode iterateeNode = (AVLTreeNode) ((lastDeletedNodeParent != null) ? lastDeletedNodeParent : this.root());
 		
 		// Tell us if we should stop balancing the tree
 		boolean completedBalancing = false;
@@ -110,11 +110,47 @@ public class AVLTree extends BSTree implements BTreeADT{
 			int rightHeight = (z.rightChild() == null) ? 0 : ((AVLTreeNode) z.rightChild()).getHeight();
 			
 			AVLTreeNode y = (AVLTreeNode) ((leftHeight > rightHeight) ? z.leftChild() : z.rightChild());
-			return determineCaseAndRebalance(z, y); 
+			
+			leftHeight = (y.leftChild() == null) ? 0 : ((AVLTreeNode) y.leftChild()).getHeight();
+			rightHeight = (y.rightChild() == null) ? 0 : ((AVLTreeNode) y.rightChild()).getHeight();
+			
+			AVLTreeNode x = (AVLTreeNode) ((leftHeight > rightHeight) ? y.leftChild() : y.rightChild());
+			
+			return determineCaseAndRebalanceForDelete(z, y, x); 
 		}
 		
 		// Return false, indicating no balance has been performed.
 		return false;
+	}
+	
+	private boolean determineCaseAndRebalanceForDelete(AVLTreeNode z, AVLTreeNode y, AVLTreeNode x){
+		
+		// We have two of the nodes we need, z and y, but we need to define x.
+
+		// Case 1: Left Left
+		if (y.isLeftChild() && x.isLeftChild()){
+			// Rotate right on z
+			performRightRotation(z);
+		}
+		// Case 2: Left Right
+		if (y.isLeftChild() & x.isRightChild()){
+			// Rotate left on y
+			// Rotate right on z
+			doubleRight(z);
+		}
+		// Case 3: Right Right
+		if (y.isRightChild() & x.isRightChild()){
+			// Rotate left on z
+			performLeftRotation(z);
+		}
+		// Case 4: Right Left
+		if (y.isRightChild() & x.isLeftChild()){
+			// Rotate right on y
+			// Rotate left on z
+			doubleLeft(z);
+		}
+		
+		return true;
 	}
 	
 	/*
@@ -201,17 +237,13 @@ public class AVLTree extends BSTree implements BTreeADT{
 		boolean isBalanced = balance == 1 || balance == -1 || balance == 0;
 		
 		// Balance the tree based on the case.
-		if (!isBalanced) { return determineCaseAndRebalance(z, y); }
+		if (!isBalanced) { return determineCaseAndRebalanceForInsert(z, y); }
 		
 		// Return false, indicating no balance has been performed.
 		return false;
 	}
 	
-	/*
-	 * Generic
-	 * 
-	 */
-	private boolean determineCaseAndRebalance(AVLTreeNode z, AVLTreeNode y){
+	private boolean determineCaseAndRebalanceForInsert(AVLTreeNode z, AVLTreeNode y){
 		
 		// We have two of the nodes we need, z and y, but we need to define x.
 
@@ -244,6 +276,10 @@ public class AVLTree extends BSTree implements BTreeADT{
 		return true;
 	}
 	
+	/*
+	 * Generic
+	 * 
+	 */
 	private void performRightRotation(AVLTreeNode nodeToRotate){
 		// We will right rotate this root
 		
