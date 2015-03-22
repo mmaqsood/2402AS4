@@ -25,25 +25,19 @@ public class AVLTree extends BSTree implements BTreeADT{
 	 * 
 	 */
 	public void remove(String aKeyString){
-	    //remove a node whose Data object's key matches aKeyString
-	    //for a binary search tree this requires moving nodes around so that
-	    //the total ordering of nodes is maintained
-	    
-	    //O(height)
-	    
-	      //System.out.println("BSTree::remove(String) ");
-      
-      if(isEmpty()) return;
-      
-      if(size()==1){
-      	Data temp = new Data(aKeyString);
-      	if(root().getData().compare(temp) == 0)
-      	  setRoot(null);
-      	return;
-      }
-      
-     lastDeletedNodeParent = ((AVLTreeNode) getRoot()).removeNodeFromTree(aKeyString);
-     checkAndRebalanceForDelete();
+	    /*
+	     * TA NOTE:
+	     * 
+	     * With the Professor's code, the node that was being deleted was not being returned.
+	     * 
+	     * I need the node that was deleted's parent so I can begin looking into the tree.
+	     * 
+	     * Since this is an issue, I find the node first and then delete it. Please understand
+	     * I have to do this in order to get the parent node, this is due to the way the Prof programmed it.
+	     * 
+	     * I attempted to change his recursive call but when I was setting a variable in the recursive call,
+	     * it was not being persisted so there was no way.
+	     */
     }
 	
 	private void checkAndRebalanceForDelete(){
