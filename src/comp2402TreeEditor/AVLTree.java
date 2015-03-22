@@ -30,14 +30,43 @@ public class AVLTree extends BSTree implements BTreeADT{
 	     * 
 	     * With the Professor's code, the node that was being deleted was not being returned.
 	     * 
-	     * I need the node that was deleted's parent so I can begin looking into the tree.
+	     * I need the node that was deleted's parent so I can begin looking up the tree starting that point.
 	     * 
-	     * Since this is an issue, I find the node first and then delete it. Please understand
-	     * I have to do this in order to get the parent node, this is due to the way the Prof programmed it.
+	     * Since this is an issue with the Prof's code, I find the node first and then delete it so I can keep track
+	     * of the parent for rebalancing. 
+	     * 
+	     * Please understand I have to do this in order to get the parent node, this is due to the way the Prof programmed it.
 	     * 
 	     * I attempted to change his recursive call but when I was setting a variable in the recursive call,
 	     * it was not being persisted so there was no way.
 	     */
+		boolean found = false;
+		AVLTreeNode iterateeNode = (AVLTreeNode) this.root();
+		while (!found){
+			Data temp = new Data(aKeyString); //turn the string into a data object for comparisons
+
+		   //compare this node's key using a temporary data object 
+		   int comparision = temp.compare(iterateeNode.getData());
+		   
+		   if(comparision < 0 && iterateeNode.leftChild() != null) {
+		   	   //search the left subtree
+			   iterateeNode = (AVLTreeNode) iterateeNode.leftChild();
+		   }
+		   
+		   else if(comparision > 0 && iterateeNode.rightChild() != null) {
+		   	  //search the right subtree
+			   iterateeNode = (AVLTreeNode) iterateeNode.rightChild();
+		   }
+		   else if(comparision == 0){
+		      //found the node so track the parent
+		      found = true;
+		      lastDeletedNodeParent = (AVLTreeNode) iterateeNode.parent();
+		   }
+		}
+		// Perform the delete.
+		super.remove(aKeyString);
+		// Rebalance if needed
+		checkAndRebalanceForDelete();
     }
 	
 	private void checkAndRebalanceForDelete(){
