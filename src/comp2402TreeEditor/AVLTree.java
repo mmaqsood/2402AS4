@@ -8,6 +8,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 	AVLTreeNode lastInsertedNode;
 	AVLTreeNode lastDeletedNodeParent;
 	boolean deletedNodeWasLeftChild;
+	boolean deletedNodeWasRoot;
 	
 	/*
 	 * Find
@@ -63,6 +64,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 		      found = true;
 		      lastDeletedNodeParent = (AVLTreeNode) iterateeNode.parent();
 		      deletedNodeWasLeftChild = iterateeNode.isLeftChild();
+		      deletedNodeWasRoot = iterateeNode.isRoot();
 		   }
 		}
 		// Perform the delete.
@@ -76,10 +78,10 @@ public class AVLTree extends BSTree implements BTreeADT{
 		AVLTreeNode iterateeNode = (AVLTreeNode) ((lastDeletedNodeParent != null) ? lastDeletedNodeParent : this.root());
 		
 		// In the case that this is not the root, we want to start at the new child
-		if (deletedNodeWasLeftChild && lastDeletedNodeParent.leftChild() != null){
+		if (deletedNodeWasLeftChild && lastDeletedNodeParent != null && lastDeletedNodeParent.leftChild() != null && !deletedNodeWasRoot){
 			iterateeNode = (AVLTreeNode) lastDeletedNodeParent.leftChild();
 		}
-		else if (!deletedNodeWasLeftChild && lastDeletedNodeParent.rightChild() != null){
+		else if (!deletedNodeWasLeftChild && lastDeletedNodeParent != null && lastDeletedNodeParent.rightChild() != null && !deletedNodeWasRoot){
 			iterateeNode = (AVLTreeNode) lastDeletedNodeParent.rightChild();
 		}
 		
