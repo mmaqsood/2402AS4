@@ -73,6 +73,10 @@ public class AVLTree extends BSTree implements BTreeADT{
 		checkAndRebalanceForDelete();
     }
 	
+	/*
+	 * Checks to see if an imbalance has occured for a delete and then
+	 * rebalances if nesscarry. 
+	 */
 	private void checkAndRebalanceForDelete(){
 		// Decide what node we are going to be iterating starting with
 		AVLTreeNode iterateeNode = (AVLTreeNode) ((lastDeletedNodeParent != null) ? lastDeletedNodeParent : this.root());
@@ -109,6 +113,9 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 	}
 	
+	/*
+	 * Determines if the node needs to be balanced, if so, balances it.
+	 */
 	private boolean balanceIfNeededForDelete(AVLTreeNode nodeToBeRebalanced){
 		// Get the balance of z, the tree that we fear might be imbalanced.
 		int balance = nodeToBeRebalanced.getBalance();
@@ -135,6 +142,9 @@ public class AVLTree extends BSTree implements BTreeADT{
 		return false;
 	}
 	
+	/*
+	 * Judges what the case is to appropriately balance the tree
+	 */
 	private boolean determineCaseAndRebalanceForDelete(AVLTreeNode nodeToBeRebalanced, AVLTreeNode tallestChild, AVLTreeNode tallestSubChild){
 		
 		// We have two of the nodes we need, z and y, but we need to define x.
@@ -170,6 +180,10 @@ public class AVLTree extends BSTree implements BTreeADT{
 	 * Insert
 	 *  
 	 */
+	
+	/*
+	 * Performs an insert on a AVL Tree
+	 */
 	public void insert(String dataString){
     	
     	/*A binary search tree inserts nodes based on the key value of their Data item.
@@ -180,8 +194,7 @@ public class AVLTree extends BSTree implements BTreeADT{
     	O(height)
    	    */
    	    
-   	    //System.out.println("BSTree::insert(String)");
-    	Data data = new Data(dataString);
+   	    Data data = new Data(dataString);
     	
     	TreeNode newChildNode = new AVLTreeNode(data);
     	
@@ -197,7 +210,8 @@ public class AVLTree extends BSTree implements BTreeADT{
     }
 	
 	/*
-	 * 
+	 * Checks to see if an imbalance has occured for an insert and then
+	 * rebalances if nesscarry. 
 	 */
 	private void checkAndRebalanceForInsert(){
 		// Decide what node we are going to be iterating starting with
