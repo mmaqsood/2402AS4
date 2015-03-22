@@ -7,6 +7,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 
 	AVLTreeNode lastInsertedNode;
 	AVLTreeNode lastDeletedNodeParent;
+	boolean deletedNodeWasLeftChild;
 	
 	/*
 	 * Find
@@ -61,6 +62,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 		      //found the node so track the parent
 		      found = true;
 		      lastDeletedNodeParent = (AVLTreeNode) iterateeNode.parent();
+		      deletedNodeWasLeftChild = iterateeNode.isLeftChild();
 		   }
 		}
 		// Perform the delete.
@@ -73,6 +75,14 @@ public class AVLTree extends BSTree implements BTreeADT{
 		// Decide what node we are going to be iterating starting with
 		AVLTreeNode iterateeNode = (AVLTreeNode) ((lastDeletedNodeParent != null) ? lastDeletedNodeParent : this.root());
 		
+		// In the case that this is not the root, we want to start at the new child
+		if (deletedNodeWasLeftChild && lastDeletedNodeParent.leftChild() != null){
+			iterateeNode = (AVLTreeNode) lastDeletedNodeParent.leftChild();
+		}
+		else if (!deletedNodeWasLeftChild && lastDeletedNodeParent.rightChild() != null){
+			iterateeNode = (AVLTreeNode) lastDeletedNodeParent.rightChild();
+		}
+		
 		// Tell us if we should stop balancing the tree
 		boolean completedBalancing = false;
 		
@@ -80,7 +90,7 @@ public class AVLTree extends BSTree implements BTreeADT{
 		while (!completedBalancing){
 			// We attempt to balance the tree if we need to, and this function will return true if it performed 
 			// a balance.
-			completedBalancing = this.balanceIfNeededForDelete(iterateeNode /*z*/);
+			this.balanceIfNeededForDelete(iterateeNode /*z*/);
 			
 			// We do not need to do the following (moving up) if we have reached the top, the root.
 			if (!iterateeNode.isRoot()) {
@@ -97,57 +107,57 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 	}
 	
-	private boolean balanceIfNeededForDelete(AVLTreeNode z){
+	private boolean balanceIfNeededForDelete(AVLTreeNode nodeToBeRebalanced){
 		// Get the balance of z, the tree that we fear might be imbalanced.
-		int balance = z.getBalance();
+		int balance = nodeToBeRebalanced.getBalance();
 		
 		// Three values determine an imbalance, 1, -1, 0.
 		boolean isBalanced = balance == 1 || balance == -1 || balance == 0;
 		
 		// Balance the tree based on the case.
 		if (!isBalanced) { 
-			int leftHeight = (z.leftChild() == null) ? 0 : ((AVLTreeNode) z.leftChild()).getHeight();
-			int rightHeight = (z.rightChild() == null) ? 0 : ((AVLTreeNode) z.rightChild()).getHeight();
+			int leftHeight = (nodeToBeRebalanced.leftChild() == null) ? 0 : ((AVLTreeNode) nodeToBeRebalanced.leftChild()).getHeight();
+			int rightHeight = (nodeToBeRebalanced.rightChild() == null) ? 0 : ((AVLTreeNode) nodeToBeRebalanced.rightChild()).getHeight();
 			
-			AVLTreeNode y = (AVLTreeNode) ((leftHeight > rightHeight) ? z.leftChild() : z.rightChild());
+			AVLTreeNode tallestChild = (AVLTreeNode) ((leftHeight > rightHeight) ? nodeToBeRebalanced.leftChild() : nodeToBeRebalanced.rightChild());
 			
-			leftHeight = (y.leftChild() == null) ? 0 : ((AVLTreeNode) y.leftChild()).getHeight();
-			rightHeight = (y.rightChild() == null) ? 0 : ((AVLTreeNode) y.rightChild()).getHeight();
+			leftHeight = (tallestChild.leftChild() == null) ? 0 : ((AVLTreeNode) tallestChild.leftChild()).getHeight();
+			rightHeight = (tallestChild.rightChild() == null) ? 0 : ((AVLTreeNode) tallestChild.rightChild()).getHeight();
 			
-			AVLTreeNode x = (AVLTreeNode) ((leftHeight > rightHeight) ? y.leftChild() : y.rightChild());
+			AVLTreeNode tallestSubChild = (AVLTreeNode) ((leftHeight > rightHeight) ? tallestChild.leftChild() : tallestChild.rightChild());
 			
-			return determineCaseAndRebalanceForDelete(z, y, x); 
+			return determineCaseAndRebalanceForDelete(nodeToBeRebalanced, tallestChild, tallestSubChild); 
 		}
 		
 		// Return false, indicating no balance has been performed.
 		return false;
 	}
 	
-	private boolean determineCaseAndRebalanceForDelete(AVLTreeNode z, AVLTreeNode y, AVLTreeNode x){
+	private boolean determineCaseAndRebalanceForDelete(AVLTreeNode nodeToBeRebalanced, AVLTreeNode tallestChild, AVLTreeNode tallestSubChild){
 		
 		// We have two of the nodes we need, z and y, but we need to define x.
 
 		// Case 1: Left Left
-		if (y.isLeftChild() && x.isLeftChild()){
+		if (tallestChild.isLeftChild() && tallestSubChild.isLeftChild()){
 			// Rotate right on z
-			performRightRotation(z);
+			performRightRotation(nodeToBeRebalanced);
 		}
 		// Case 2: Left Right
-		if (y.isLeftChild() & x.isRightChild()){
+		if (tallestChild.isLeftChild() & tallestSubChild.isRightChild()){
 			// Rotate left on y
 			// Rotate right on z
-			doubleRight(z);
+			doubleRight(nodeToBeRebalanced);
 		}
 		// Case 3: Right Right
-		if (y.isRightChild() & x.isRightChild()){
+		if (tallestChild.isRightChild() & tallestSubChild.isRightChild()){
 			// Rotate left on z
-			performLeftRotation(z);
+			performLeftRotation(nodeToBeRebalanced);
 		}
 		// Case 4: Right Left
-		if (y.isRightChild() & x.isLeftChild()){
+		if (tallestChild.isRightChild() & tallestSubChild.isLeftChild()){
 			// Rotate right on y
 			// Rotate left on z
-			doubleLeft(z);
+			doubleLeft(nodeToBeRebalanced);
 		}
 		
 		return true;
@@ -184,6 +194,9 @@ public class AVLTree extends BSTree implements BTreeADT{
     	
     }
 	
+	/*
+	 * 
+	 */
 	private void checkAndRebalanceForInsert(){
 		// Decide what node we are going to be iterating starting with
 		AVLTreeNode iterateeNode = lastInsertedNode;
@@ -229,48 +242,54 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 	}
 	
-	private boolean balanceIfNeededForInsert(AVLTreeNode z, AVLTreeNode y){
+	/*
+	 * Determines if the node needs to be balanced, if so, balances it.
+	 */
+	private boolean balanceIfNeededForInsert(AVLTreeNode nodeToBeRebalanced, AVLTreeNode childOnThePathFromInsertedNode){
 		// Get the balance of z, the tree that we fear might be imbalanced.
-		int balance = z.getBalance();
+		int balance = nodeToBeRebalanced.getBalance();
 		
 		// Three values determine an imbalance, 1, -1, 0.
 		boolean isBalanced = balance == 1 || balance == -1 || balance == 0;
 		
 		// Balance the tree based on the case.
-		if (!isBalanced) { return determineCaseAndRebalanceForInsert(z, y); }
+		if (!isBalanced) { return determineCaseAndRebalanceForInsert(nodeToBeRebalanced, childOnThePathFromInsertedNode); }
 		
 		// Return false, indicating no balance has been performed.
 		return false;
 	}
 	
-	private boolean determineCaseAndRebalanceForInsert(AVLTreeNode z, AVLTreeNode y){
+	/*
+	 * Judges what the case is to appropriately balance the tree
+	 */
+	private boolean determineCaseAndRebalanceForInsert(AVLTreeNode nodeToBeRebalanced, AVLTreeNode childOnThePathFromInsertedNode){
 		
 		// We have two of the nodes we need, z and y, but we need to define x.
 
 		// x is the child of y, that was on the path from w to z.
-		AVLTreeNode x = y.getLastChild();
+		AVLTreeNode subChildOnThePathFromInsertedNode = childOnThePathFromInsertedNode.getLastChild();
 		
 		// Case 1: Left Left
-		if (y.isLeftChild() && x.isLeftChild()){
+		if (childOnThePathFromInsertedNode.isLeftChild() && subChildOnThePathFromInsertedNode.isLeftChild()){
 			// Rotate right on z
-			performRightRotation(z);
+			performRightRotation(nodeToBeRebalanced);
 		}
 		// Case 2: Left Right
-		if (y.isLeftChild() & x.isRightChild()){
+		if (childOnThePathFromInsertedNode.isLeftChild() & subChildOnThePathFromInsertedNode.isRightChild()){
 			// Rotate left on y
 			// Rotate right on z
-			doubleRight(z);
+			doubleRight(nodeToBeRebalanced);
 		}
 		// Case 3: Right Right
-		if (y.isRightChild() & x.isRightChild()){
+		if (childOnThePathFromInsertedNode.isRightChild() & subChildOnThePathFromInsertedNode.isRightChild()){
 			// Rotate left on z
-			performLeftRotation(z);
+			performLeftRotation(nodeToBeRebalanced);
 		}
 		// Case 4: Right Left
-		if (y.isRightChild() & x.isLeftChild()){
+		if (childOnThePathFromInsertedNode.isRightChild() & subChildOnThePathFromInsertedNode.isLeftChild()){
 			// Rotate right on y
 			// Rotate left on z
-			doubleLeft(z);
+			doubleLeft(nodeToBeRebalanced);
 		}
 		
 		return true;
@@ -279,6 +298,10 @@ public class AVLTree extends BSTree implements BTreeADT{
 	/*
 	 * Generic
 	 * 
+	 */
+	
+	/*
+	 * Performs a right rotation on a node.
 	 */
 	private void performRightRotation(AVLTreeNode nodeToRotate){
 		// We will right rotate this root
@@ -364,6 +387,9 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 	}
 	
+	/*
+	 * Performs a left rotation on a node.
+	 */
 	private void performLeftRotation(AVLTreeNode nodeToRotate){
 		// We will right rotate this root
 		
@@ -449,12 +475,21 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 	}
 
-    private void doubleLeft(AVLTreeNode v) {
-    	performRightRotation((AVLTreeNode) v.rightChild());
-        performLeftRotation(v);
+	/*
+	 * Performs a right rotation on a node's right child and then
+	 * performs a left rotation on the node itself.
+	 */
+    private void doubleLeft(AVLTreeNode nodeToBeRebalanced) {
+    	performRightRotation((AVLTreeNode) nodeToBeRebalanced.rightChild());
+        performLeftRotation(nodeToBeRebalanced);
     }
-    private void doubleRight(AVLTreeNode v) {
-    	performLeftRotation((AVLTreeNode) v.leftChild());
-    	performRightRotation(v);
+    
+    /*
+     * Performs a left rotation on a node's left child and then
+     * performs a right rotation on the node itself.
+     */
+    private void doubleRight(AVLTreeNode nodeToBeRebalanced) {
+    	performLeftRotation((AVLTreeNode) nodeToBeRebalanced.leftChild());
+    	performRightRotation(nodeToBeRebalanced);
     }
 }
