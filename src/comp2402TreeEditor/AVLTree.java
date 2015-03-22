@@ -165,27 +165,45 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 		else if (leftChild != null) {
 			// Now we enter the more complex cases.
+			AVLTreeNode grandParent = (AVLTreeNode) nodeToRotate.parent();
 			
-			// If this is a sub-tree, we will update the parent with new node
-			// with the next node in line.
+			// 1. Link the grandParent with the new parent, which is the leftChild
+			// If z is not a root and is a right child
 			if (!nodeToRotate.isRoot() && nodeToRotate.isRightChild()){
-				((BTreeNode) nodeToRotate.parent()).setRightChild(rightChild);
+				grandParent.setRightChild(leftChild);
 			}
+			// If z is not a root and is a left child
 			else if (!nodeToRotate.isRoot() && nodeToRotate.isLeftChild()){
-				((BTreeNode) nodeToRotate.parent()).setLeftChild(leftChild);
+				grandParent.setLeftChild(leftChild);
 			}
 			
-			// We also need to switch parents and link the rightChild to the parent of the 
-			// node we are rotating and vice-versa
-			if (nodeToRotate.isRoot()) leftChild.setParent(null);
-			else leftChild.setParent(nodeToRotate.parent());
-						
-			nodeToRotate.setParent(leftChild);
-			if (leftChild.rightChild() != null) leftChild.rightChild().setParent(nodeToRotate);
-			if (leftChild.rightChild() != null) nodeToRotate.setLeftChild((BTreeNode) leftChild.rightChild());
-			// Old root will be the right child of the new root (left child)
-			leftChild.setRightChild(nodeToRotate);
+			// 2. Link the new parent (leftChild) to the grandParent.
+			if (!nodeToRotate.isRoot()){
+				leftChild.setParent(grandParent);
+			}
+			else {
+				// Since this is the new root, it has no parent so null it.
+				leftChild.setParent(null);
+			}
 			
+			// 3. Link the old parent (nodeToRotate) to the new parent (leftChild)
+			nodeToRotate.setParent(leftChild);
+			
+			// 4. In the case the new parent (leftChild) has a right child, switch it to
+			//	  be the old parent (nodeToRtate)'s parent instead
+			if (leftChild.rightChild() != null){
+				AVLTreeNode _child = (AVLTreeNode) leftChild.rightChild();
+				// Link the right child to the old parent (noteToRotate)
+				_child.setParent(nodeToRotate);
+				// Link the old parent (nodeToRotate) to it's new child (_child, rightChild of the leftChild)
+				nodeToRotate.setLeftChild(_child);
+			}
+			else {
+				// Unhook the old parent from the new parent, as they had a parent-child relationship before
+				nodeToRotate.setLeftChild(null);
+			}
+			// 5. Finally, link the new parent (leftChild) to the old parent (rightChild)
+			leftChild.setRightChild(nodeToRotate);
 		}
 	}
 	
@@ -231,52 +249,52 @@ public class AVLTree extends BSTree implements BTreeADT{
 		}
 		else if (rightChild != null) {
 			// Now we enter the more complex cases.
+			AVLTreeNode grandParent = (AVLTreeNode) nodeToRotate.parent();
 			
-			// If this is a sub-tree, we will update the parent with new node
-			// with the next node in line.
+			// 1. Link the grandParent with the new parent, which is the rightChild
+			// If z is not a root and is a right child
 			if (!nodeToRotate.isRoot() && nodeToRotate.isRightChild()){
-				((BTreeNode) nodeToRotate.parent()).setRightChild(rightChild);
+				grandParent.setRightChild(rightChild);
 			}
+			// If z is not a root and is a left child
 			else if (!nodeToRotate.isRoot() && nodeToRotate.isLeftChild()){
-				((BTreeNode) nodeToRotate.parent()).setLeftChild(leftChild);
+				grandParent.setLeftChild(rightChild);
 			}
 			
-			// We also need to switch parents and link the rightChild to the parent of the 
-			// node we are rotating and vice-versa
-			if (nodeToRotate.isRoot()) rightChild.setParent(null);
-			else rightChild.setParent(nodeToRotate.parent());
+			// 2. Link the new parent (rightChild) to the grandParent.
+			if (!nodeToRotate.isRoot()){
+				rightChild.setParent(grandParent);
+			}
+			else {
+				// Since this is the new root, it has no parent so null it.
+				rightChild.setParent(null);
+			}
 			
+			// 3. Link the old parent (nodeToRotate) to the new parent (rightChild)
 			nodeToRotate.setParent(rightChild);
-			if (rightChild.leftChild() != null) rightChild.leftChild().setParent(nodeToRotate);
-			if (rightChild.leftChild() != null) nodeToRotate.setRightChild((BTreeNode) rightChild.leftChild());
-			// Old root will be the right child of the new root (left child)
+			
+			// 4. In the case the new parent (rightChild) has a left child, switch it to
+			//	  be the old parent (nodeToRtate)'s parent instead
+			if (rightChild.leftChild() != null){
+				AVLTreeNode _child = (AVLTreeNode) rightChild.leftChild();
+				// Link the right child to the old parent (noteToRotate)
+				_child.setParent(nodeToRotate);
+				// Link the old parent (nodeToRotate) to it's new child (_child, rightChild of the leftChild)
+				nodeToRotate.setRightChild(_child);
+			}
+			else {
+				// Unhook the old parent from the new parent, as they had a parent-child relationship before
+				nodeToRotate.setRightChild(null);
+			}
+			// 5. Finally, link the new parent (leftChild) to the old parent (rightChild)
 			rightChild.setLeftChild(nodeToRotate);
 			
 		}
 	}
 
-    private AVLTreeNode rightRotate(AVLTreeNode rightRotate) {
-        AVLTreeNode temp = rightRotate;
-        temp.setParent(rightRotate.getParent());
-        rightRotate.setRightChild((BTreeNode) temp.leftChild());
-        if (temp.leftChild() != null) {
-            temp.leftChild().setParent(rightRotate);
-        }
-
-        temp.setLeftChild(rightRotate);
-        rightRotate.setParent(temp);
-
-        ((AVLTreeNode) temp.leftChild()).setHeight();
-        ((AVLTreeNode) temp.rightChild()).setHeight();
-
-        temp.setHeight();
-
-        return temp;
-    }
-
     private void doubleLeft(AVLTreeNode v) {
-    	//performRightRotation((AVLTreeNode) v.rightChild());
-        //performLeftRotation(v);
+    	performRightRotation((AVLTreeNode) v.rightChild());
+        performLeftRotation(v);
     }
     private void doubleRight(AVLTreeNode v) {
     	//performLeftRotation((AVLTreeNode) v.leftChild());
